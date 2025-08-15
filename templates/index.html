@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSearch Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        .radio-group {
+            margin: 10px 0;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .result-snippet {
+            color: #666;
+        }
+        .result-type {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>OpenSearch Demo</h1>
+    
+    <div class="search-container">
+        <button onclick="initializeData()">Инициализировать данные</button>
+        <hr>
+        <input type="text" id="searchInput" class="search-input" placeholder="Введите поисковый запрос...">
+        
+        <div class="radio-group">
+            <label><input type="radio" name="contentType" value="" checked> Все типы</label>
+            <label><input type="radio" name="contentType" value="article"> Статьи</label>
+            <label><input type="radio" name="contentType" value="blog"> Блоги</label>
+            <label><input type="radio" name="contentType" value="news"> Новости</label>
+            <label><input type="radio" name="contentType" value="review"> Обзоры</label>
+        </div>
+        
+        <button onclick="search()">Поиск</button>
+    </div>
+
+    <div id="results" class="results"></div>
+
+    <script>
+        function initializeData() {
+            fetch('/init', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Данные успешно инициализированы');
+                    } else {
+                        alert('Ошибка при инициализации данных');
+                    }
+                });
+        }
+
+        function search() {
+            const keyword = document.getElementById('searchInput').value;
+            const contentType = document.querySelector('input[name="contentType"]:checked').value;
+            
+            if (!keyword) {
+                document.getElementById('results').innerHTML = '';
+                return;
+            }
+
+            const params = new URLSearchParams({
+                keyword: keyword,
+                content_type: contentType
+            });
+
+            fetch(`/search?${params}`)
+                .then(response => response.json())
+                .then(results => {
+                    const resultsDiv = document.getElementById('results');
+                    if (results.length === 0) {
+                        resultsDiv.innerHTML = '<p>Ничего не найдено</p>';
+                        return;
+                    }
+
+                    resultsDiv.innerHTML = results.map(result => `
+                        <div class="result-item">
+                            <div class="result-title">${result.title}</div>
+                            <div class="result-snippet">${result.snippet}</div>
+                            <div class="result-type">Тип: ${result.content_type}</div>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+    </script>
+</body>
+</html>
