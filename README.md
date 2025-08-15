@@ -22,8 +22,8 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone [URL репозитория]
-cd [название директории]
+git clone https://github.com/ViPERxds/test.git
+cd test
 ```
 
 2. Запустите приложение с помощью Docker Compose:
